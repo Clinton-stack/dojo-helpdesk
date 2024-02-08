@@ -1,21 +1,24 @@
-import Image from "next/image";
-import Link from "next/link";
+import Link from 'next/link'
+import Image from 'next/image'
+import LogoutButton from './LogoutButton'
 
-export default function Navbar() {
-    return (
-        <nav>
-            <Image
-                src="/dojo-logo.png"
-                width={70}
-                height= {70}
-                quality={100}
-                alt="Dojo Logo"
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwL/6wU9AAAAABJRU5ErkJggg=="
-            />
-            <h1> Dojo helpdesk </h1>
-            <Link href="/"> Dashboard </Link>
-            <Link href="/tickets"> Tickets </Link>
-        </nav>
-    );
+export default function Navbar({user}) {
+  return (
+    <nav>
+      <Image
+        src='/dojo-logo.png'
+        alt='Dojo Helpdesk logo'
+        height={70}
+        width={70}
+        placeholder='blur'
+        quality={100}
+        blurDataURL='/dojo-logo.png'
+      />
+      <h1>Dojo Helpdesk</h1>
+      <Link href="/">Dashboard</Link>
+      <Link href="/tickets" className='mr-auto'>Tickets</Link>
+      {user && <span> Hello, {user.email}</span>}
+      <LogoutButton />
+    </nav>
+  )
 }
