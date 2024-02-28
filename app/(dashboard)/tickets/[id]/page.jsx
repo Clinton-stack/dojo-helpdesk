@@ -1,57 +1,64 @@
-import { notFound } from "next/navigation";
+import { notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 
-// grenerate 404 page if ticket not found
-export const dynamicPath = true;
+// components
+import DeleteIcon from './DeleteButton'
 
-export async function generateMetadata({params}) {
-    const ticket = await fetchTicket(params.id);
-    return {
-        title: `Dojo Help Desk | ${ticket.title}`,
-        description: ticket.body.slice(0, 200),
-    };
+export const dynamicParams = true
 
-}
+export async function generateMetadata({ params }) {
+  const supabase = createServerComponentClient({ cookies })
 
-// generate static pages for each ticket on build
-export async function generateStaticParams() {
-    const response = await fetch("http://localhost:4000/tickets",)
-    const tickets = await response.json();
-    return tickets.map((ticket) => ({
-        params: {
-            id: ticket.id.toString(),
-        },
-    }));
-}
+  const { data: ticket } = await supabase.from('tickets')
+    .select()
+    .eq('id', params.id)
+    .single()
 
-async function fetchTicket(id) {
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-  const response = await fetch("http://localhost:4000/tickets/" + id, {
-    next: {
-      revalidate: 60, // use 0 to opt out of cache
-    },
-  });
-  if (!response.ok) {
-    notFound();
+  return {
+    title: `Dojo Helpdesk | ${ticket?.title || 'Ticket not Found'}`
   }
-  const json = await response.json();
-  return json;
 }
+
+async function getTicket(id) {
+  const supabase = createServerComponentClient({ cookies })
+
+  const { data } = await supabase.from('tickets')
+    .select()
+    .eq('id', id)
+    .single()
+
+    if (!data) {
+      notFound()
+    }
+  
+    return data
+}
+
 export default async function TicketDetails({ params }) {
-  const ticket = await fetchTicket(params.id);
+  const ticket = await getTicket(params.id)
+
+  const supabase = createServerComponentClient({ cookies })
+  const { data } = await supabase.auth.getSession()
+
   return (
     <main>
       <nav>
         <h2>Ticket Details</h2>
+        <div className="ml-auto">
+          {data.session.user.email === ticket.user_email && (
+            <DeleteIcon id={ticket.id} />
+          )}
+        </div>
       </nav>
       <div className="card">
-        <h3> {ticket.title}</h3>
-        <small> Created by {ticket.user_email}</small>
+        <h3>{ticket.title}</h3>
+        <small>Created by {ticket.user_email}</small>
         <p>{ticket.body}</p>
         <div className={`pill ${ticket.priority}`}>
           {ticket.priority} priority
         </div>
       </div>
     </main>
-  );
+  )
 }

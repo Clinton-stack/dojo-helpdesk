@@ -19,7 +19,6 @@ async function AuthLayout({ children }) {
         <Link href="/login">Login</Link>
         <Link href="/signup">Sign Up</Link>
     </nav>
-
         {children}
     </>
   )
